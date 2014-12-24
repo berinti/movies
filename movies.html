@@ -6,6 +6,9 @@
 	<div class="container">
 		<header>
 			<h1>Movie Collection</h1>
+			<form class="new-movie">
+				<input type="text" name="text" placeholder="Type to add new movies"/>
+			</form>
 		</header>
 
 		<ul>
@@ -17,5 +20,6 @@
 </body>
 
 <template name="movie">
-	<li>{{text}}</li>
+	<!-- Outputs title field of Movie -->
+	<li>{{title}}</li>
 </template>
