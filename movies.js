@@ -26,7 +26,17 @@ if (Meteor.isClient) {
 			// Prevent default form submit
 			return false;
 		}
-	})
+	});
+
+	Template.movie.events({
+		"click .toggle-checked": function () {
+			// Set the checked property to the opposite of its current value
+			Movies.update(this._id, {$set: {checked: ! this.checked}});
+		},
+		"click .delete": function () {
+			Movies.remove(this._id);
+		}
+	});
 }
 
 if (Meteor.isServer) {
