@@ -5,14 +5,17 @@
 <body>
 	<div class="container">
 		<header>
-			<h1>Movie Collection :: {{unwatchedCount}} Unwatched Movies</h1>
+			<h1>Movie Collection :: {{unwatchedCount}} Unwatched</h1>
 			<label class="hide-watched">
 				<input type="checkbox" checked="{{hideWatched}}">
 				Hide Watched Movies
 			</label>
-			<form class="new-movie">
-				<input type="text" name="text" placeholder="Type to add new movies"/>
-			</form>
+			{{> loginButtons}}
+			{{#if currentUser}}
+				<form class="new-movie">
+					<input type="text" name="text" placeholder="Type to add new movies"/>
+				</form>
+			{{/if}}
 		</header>
 
 		<ul>
@@ -25,9 +28,18 @@
 
 <template name="movie">
 	<!-- Outputs title field of Movie -->
-	<li class="{{#if checked}}checked{{/if}}">
+	<li class="{{#if checked}}checked{{/if}} {{#if private}}private{{/if}}">
 		<button class="delete">&times;</button>
 		<input type="checkbox" checked="{{checked}}" class="toggle-checked"/>
-		<span class="text">{{title}}</span>
+		{{#if isOwner}}
+			<button class="toggle-private">
+				{{#if private}}
+					Private
+				{{else}}
+					Public
+				{{/if}}
+			</button>
+		{{/if}}
+		<span class="text"><strong>{{username}}</strong> - {{title}}</span>
 	</li>
 </template>

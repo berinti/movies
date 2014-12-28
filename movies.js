@@ -3,6 +3,7 @@ Movies = new Mongo.Collection("movies");
 
 // Code that only runs on the client
 if (Meteor.isClient) {
+	Meteor.subscribe("movies");
 
 	// Helper functions
 	Template.body.helpers({
@@ -23,16 +24,19 @@ if (Meteor.isClient) {
 		}
 	});
 
+	Template.movie.helpers({
+		isOwner: function () {
+			return this.owner === Meteor.userId();
+		}
+	});
+
 	// Event functions
 	Template.body.events({
 		// Called when we submit a new movie
 		"submit .new-movie": function (event) {
 			var title = event.target.text.value;
 			// Insert movie into Mongo
-			Movies.insert({
-				title: title,
-				createAt: new Date() // current time
-			});
+			Meteor.call("addMovie")
 			// Clear form
 			event.target.text.value = "";
 			// Prevent default form submit
@@ -46,16 +50,65 @@ if (Meteor.isClient) {
 	Template.movie.events({
 		"click .toggle-checked": function () {
 			// Set the checked property to the opposite of its current value
-			Movies.update(this._id, {$set: {checked: ! this.checked}});
+			Meteor.call("setChecked", this._id, ! this.checked);
 		},
 		"click .delete": function () {
-			Movies.remove(this._id);
+			Meteor.call("deleteMovie", this._id);
+		},
+		"click .toggle-private": function () {
+			Meteor.call("setPrivate", this._id, ! this.private);
 		}
+	});
+
+	Accounts.ui.config({
+		passwordSignupFields: "USERNAME_ONLY"
 	});
 }
 
 if (Meteor.isServer) {
-  Meteor.startup(function () {
-    // code to run on server at startup
+  Meteor.publish("movies", function () {
+  	return Movies.find({
+  		$or: [
+  			{ private: {$ne: true} },
+  			{ owner: this.userId }
+  		]
+  	});
   });
 }
+
+Meteor.methods({
+	addMovie: function (text) {
+		// Ensure user is logged in before adding a movie
+		if (! Meteor.userId()) {
+			throw new Meteor.Error("not-authorized");
+		}
+		Moavies.insert({
+			title: title,
+			createAt: new Date(), 						// current time
+			owner: Meteor.userId(),						// _id of logged in user
+			username: Meteor.user().username 	// username of logged in user
+		});
+	},
+	deleteMovie: function (movieId) {
+		var movie = Movies.findOne(movieId);
+		if (movie.private && movie.owner !== Meteor.userId()) {
+			throw new Meteor.Error("not-authorized");
+		}
+		Movies.remove(movieId);
+	},
+	setChecked: function (movieId, setChecked) {
+		var movie = Movies.findOne(movieId);
+		if (movie.private && movie.owner !== Meteor.userId()) {
+			throw new Meteor.Error("not-authorized");
+		}
+		Movies.update(movieId, { $set: { checked: setChecked} });
+	},
+	setPrivate: function (movieId, setToPrivate) {
+		var movie = Movies.findOne(movieId);
+		// Ensure only a movie ower can make a movie private
+		if (movie.owner !== Meteor.userId()) {
+			throw new Meteor.Error("not-authorized");
+		}
+		Movies.update(movieId, { $set: { private: setToPrivate } });
+	}
+});
