@@ -7,7 +7,19 @@ if (Meteor.isClient) {
 	// Helper functions
 	Template.body.helpers({
 		movies: function() {
-			return Movies.find({}, {sort: {createAt: -1}}); // Sort most recent at the top
+			if (Session.get("hideWatched")) {
+				// If hide watched is checked, hide watched movies; $ne is not equal in MongoDB
+				return Movies.find({checked: {$ne: true}}, {sort: {createAt: -1}});
+			} else {
+				// Otherwise return all movies
+				return Movies.find({}, {sort: {createAt: -1}}); // Sort most recent at the top
+			}
+		},
+		hideCompleted: function () {
+			return Session.get("hideCompleted");
+		},
+		unwatchedCount: function () {
+			return Movies.find({checked: {$ne: true}}).count();
 		}
 	});
 
@@ -25,6 +37,9 @@ if (Meteor.isClient) {
 			event.target.text.value = "";
 			// Prevent default form submit
 			return false;
+		},
+		"change .hide-watched input": function (event) {
+			Session.set("hideWatched", event.target.checked);
 		}
 	});
 

@@ -5,7 +5,11 @@
 <body>
 	<div class="container">
 		<header>
-			<h1>Movie Collection</h1>
+			<h1>Movie Collection :: {{unwatchedCount}} Unwatched Movies</h1>
+			<label class="hide-watched">
+				<input type="checkbox" checked="{{hideWatched}}">
+				Hide Watched Movies
+			</label>
 			<form class="new-movie">
 				<input type="text" name="text" placeholder="Type to add new movies"/>
 			</form>
